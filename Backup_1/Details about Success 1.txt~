@@ -1,0 +1,9 @@
+This backup contains the instrumentor code which can perform the following functions:
+
+// Given instruction for compilation and command are specific for windows machine
+
+1. Scan the input file
+2. Find assignment statements for Integer and Double values
+3. Instrument the code with our given values as arguments
+4. To complie:  gcc scanner.c lex.yy.c -o scanner
+5. Command format:    ./scanner < file_name.cpp var_name1,var_name2,var_name3,... var_val1,var_val2,var_val3,....
