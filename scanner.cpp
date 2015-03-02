@@ -159,12 +159,18 @@ void instrument_file()
                     {
                            if(mod_flag == 0)
                            {
-                             func1(v_name[k],d_rand(),f_name);
+				if(random_flag==RANDOMIZE)
+                             		func1(v_name[k],d_rand(),f_name);
+ 				else
+			     		func1(v_name[k],v_val[k],f_name);
                              //v_name[k]="*";                     // So that variable is instrumented only once
                            }
                            else
                            {
-                             func2(v_name[k],d_rand());
+				if(random_flag==RANDOMIZE)
+                         	    func2(v_name[k],d_rand());
+				else
+				    func2(v_name[k],v_val[k]);
                              //v_name[k]="*";                    //  So that variable is instrumented only once
                            }
                     }
@@ -300,6 +306,7 @@ int main(int argc,char *argv[])
 	strcpy(f_name,argv[1]);
 	tokenize_name(argv[2]);
 	random_flag=RANDOMIZE;
+	instrument_file();
     }
    else if(argc==4)
     {
@@ -307,6 +314,7 @@ int main(int argc,char *argv[])
 	tokenize_name(argv[2]);
 	tokenize_val(argv[3]);
 	random_flag=USE_VALUES;
+	instrument_file();
     }
    else
     cout<<"\n\n--Help Content--\n\n";
