@@ -153,7 +153,7 @@ void instrument_file()
 					//printf("%s %s %s",argv[0],argv[1],argv[2]);
 
 					int k=0;
-		for(k=0;k<4&&v_name[k]!=NULL;k++)   // modify the value 4 to exact NULL condition
+		for(k=0;v_name[k]!=NULL;k++)   // modify the value 4 to exact NULL condition
                     {
                     if(strcmp(ident,v_name[k])==0)
                     {
@@ -202,6 +202,7 @@ void instrument_file()
                              system("g++ inst_code.cpp -o test");
                              system("./test");
 			}
+	fclose(yyin);
 }
 
 // Main Function
@@ -220,7 +221,7 @@ int main(int argc,char *argv[])
 		0. Exit
 	Menu is optional, User can skip this menu by entering the details in the command line in the given format:
 		scanner < file_name.cpp file_name.cpp var_name1,var_name2,var_name3,...    */
-	int ch=0,inst=0;
+	int ch=0,inst=0,values_flag=NEW_VALUE;
 	while(1)
 	{
 	cout<<"\n\33[4mScanner menu:\33[0m \n\n1. Instrument File \n2. Set Options \n3. Help \n0. Exit\n--> Enter your choice: ";
@@ -249,19 +250,21 @@ int main(int argc,char *argv[])
 			   case 1: char vr[VR_SZ];
 				   cout<<"\nEnter the variable names one by one (0 to exit):";
 					cin>>vr;
-					strcat(vr_n,vr);
+					strcpy(vr_n,vr);
 				   while(vr[0]!='0')
-					{cout<<"--";
+					{
 						strcat(vr_n,",");
 						cin>>vr;
 						strcat(vr_n,vr);
 					}
+					cout<<vr_n;
 				   random_flag = RANDOMIZE;
+				   values_flag = NEW_VALUE;
 				   break;
 			   case 2: 
 				   cout<<"\nEnter the variable names one by one (0 to exit):";
 					cin>>vr;
-					strcat(vr_n,vr);
+					strcpy(vr_n,vr);
 				   while(vr[0]!='0')
 					{
 						strcat(vr_n,",");
@@ -270,7 +273,7 @@ int main(int argc,char *argv[])
 					}
 				   cout<<"\nEnter the variable values respectively (0 to exit):";
 					cin>>vr;
-					strcat(vr_v,vr);
+					strcpy(vr_v,vr);
 				   while(vr[0]!='0')
 					{
 						strcat(vr_v,",");
@@ -278,9 +281,11 @@ int main(int argc,char *argv[])
 						strcat(vr_v,vr);
 					}
 				      random_flag=USE_VALUES;
+				      values_flag=NEW_VALUE;
 				   break;
 			    default:  cout<<"\n\nWrong Choice!!!!!\n\n";
-			}
+			}	
+			inst=0;						//To stop invoking the instrument() function automatically at the end
 			break;
 	case 3: 	cout<<"\n\n\t-----Help Content-----\n\n";
 			break;
@@ -289,13 +294,23 @@ int main(int argc,char *argv[])
 	}
 		if(random_flag==RANDOMIZE&&inst)
 		{	
+			if(values_flag==NEW_VALUE)			//To tokenize values only if new values are entered otherwise use old values
+			{
 			tokenize_name(vr_n);
+			values_flag=OLD_VALUE;
+			}
+			mod_flag = 0;
 			instrument_file();
 		}
 		else if(random_flag==USE_VALUES&&inst)
 		{
-		     	tokenize_name(vr_n);
+		     	if(values_flag==NEW_VALUE)			//To tokenize values only if new values are entered otherwise use old values
+			{
+			tokenize_name(vr_n);
 			tokenize_val(vr_v);
+			values_flag=OLD_VALUE;
+			}
+			mod_flag = 0;
 			instrument_file();
 		}
 	}
