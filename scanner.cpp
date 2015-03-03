@@ -7,13 +7,17 @@ using namespace std;
 
 // Declaration of global variables
 
-int mod_flag = 0,random_flag=NOT_SET;			/*mod_flag to show if the file is modified
+int mod_flag = 0,random_flag=NOT_SET,values_flag=NEW_VALUE;
+char mi_stat[4]="on";					/*mod_flag to show if the file is modified
 							 random_flag -> default value is 0
+							mi_stat -> multiple Instrumentation of a single variable -> default "on"
+							values_flag ->To check if the values to be used are new or old
 							0 -> not set
 							1 -> randomize values
 							2 -> instrument with given values
 							*/
-					
+	
+int tok_n_cnt=0,tok_v_cnt=0;		//Token name and value count			
 char *v_name[30],*v_val[30],f_name[FN_SZ],vr_n[VR_SZ],vr_v[VV_SZ];	//"f_name" for storing file name from the menu &  "str" for storing the list of variables to be instrumented
 
 char value[30];   // Variable for function d_rand
@@ -31,11 +35,11 @@ extern char* yytext;
 void tokenize_name(char *str)
 {
      v_name[0]=strtok(str,",");
-     int i=1;
-     while((v_name[i] = strtok(NULL,","))!=NULL)
+     tok_n_cnt=1;
+     while((v_name[tok_n_cnt] = strtok(NULL,","))!=NULL)
      {
        // printf("\n%s",v_name[i]);
-         ++i;
+         ++tok_n_cnt;
      }
 }
 
@@ -46,11 +50,11 @@ void tokenize_name(char *str)
 void tokenize_val(char *str)
 {
      v_val[0]=strtok(str,",");
-     int i=1;
-     while((v_val[i] = strtok(NULL,","))!=NULL)
+     tok_v_cnt=1;
+     while((v_val[tok_v_cnt] = strtok(NULL,","))!=NULL)
      {
        // printf("\n%s",v_val[i]);
-         ++i;
+         ++tok_v_cnt;
      }
 }
 
@@ -131,6 +135,7 @@ void instrument_file()
 {  
 	int n_return,v_return;
 	char ident[38] = DEFAULT;
+	yylineno = 1;			//Reset yylineno for each execution
 	yyin = fopen(f_name,"r");
 	 n_return = yylex();
 	 while(n_return)
@@ -163,7 +168,8 @@ void instrument_file()
                              		func1(v_name[k],d_rand(),f_name);
  				else
 			     		func1(v_name[k],v_val[k],f_name);
-                             //v_name[k]="*";                     // So that variable is instrumented only once
+				if(strcmp(mi_stat,"off")==0)
+                          		strcpy(v_name[k],"*");                     // So that variable is instrumented only once
                            }
                            else
                            {
@@ -171,7 +177,8 @@ void instrument_file()
                          	    func2(v_name[k],d_rand());
 				else
 				    func2(v_name[k],v_val[k]);
-                             //v_name[k]="*";                    //  So that variable is instrumented only once
+				if(strcmp(mi_stat,"off")==0)
+                             	 	strcpy(v_name[k],"*");                  //  So that variable is instrumented only once
                            }
                     }
                     }
@@ -221,9 +228,10 @@ int main(int argc,char *argv[])
 		0. Exit
 	Menu is optional, User can skip this menu by entering the details in the command line in the given format:
 		scanner < file_name.cpp file_name.cpp var_name1,var_name2,var_name3,...    */
-	int ch=0,inst=0,values_flag=NEW_VALUE;
+	int ch=0,inst=0;
 	while(1)
 	{
+		inst=0;						//To stop invoking the instrument() function automatically at the end
 	cout<<"\n\33[4mScanner menu:\33[0m \n\n1. Instrument File \n2. Set Options \n3. Help \n0. Exit\n--> Enter your choice: ";
 	cin>>ch;
 	switch(ch)
@@ -241,7 +249,7 @@ int main(int argc,char *argv[])
 			inst=1;
 			}
 			break;
-	 case 2:	cout<<"\n\n1. Randomize values\n2. Set Values\n0. Main Menu \n--> Enter your choice:";
+	 case 2:	cout<<"\n\n1. Randomize values\n2. Set Values\n3. Multiple Instrumentation ("<<mi_stat<<")\n0. Main Menu \n--> Enter your choice:";
 			int ch2;
 			cin>>ch2;
 			switch(ch2)
@@ -283,9 +291,18 @@ int main(int argc,char *argv[])
 				      random_flag=USE_VALUES;
 				      values_flag=NEW_VALUE;
 				   break;
+			    case 3:		int temp_value;
+				  cout<<"\nEnter option(0 -> off / 1 -> on):";
+				  cin>>temp_value;
+					if(temp_value==0)
+						strcpy(mi_stat,"off");
+					else if(temp_value==1)
+						strcpy(mi_stat,"on");
+					else
+						cout<<"\n\nWrong option entered!!!  Exiting!!!!\n";
+				  break;
 			    default:  cout<<"\n\nWrong Choice!!!!!\n\n";
 			}	
-			inst=0;						//To stop invoking the instrument() function automatically at the end
 			break;
 	case 3: 	cout<<"\n\n\t-----Help Content-----\n\n";
 			break;
@@ -301,6 +318,8 @@ int main(int argc,char *argv[])
 			}
 			mod_flag = 0;
 			instrument_file();
+			if(strcmp(mi_stat,"off")==0)
+				random_flag=NOT_SET;
 		}
 		else if(random_flag==USE_VALUES&&inst)
 		{
@@ -310,8 +329,15 @@ int main(int argc,char *argv[])
 			tokenize_val(vr_v);
 			values_flag=OLD_VALUE;
 			}
+			if(tok_n_cnt!=tok_v_cnt)
+				cout<<"\nNumber of variables and values should be same!!!\n";
+			else
+			{
 			mod_flag = 0;
 			instrument_file();
+			if(strcmp(mi_stat,"off")==0)
+				random_flag=NOT_SET;
+			}
 		}
 	}
 	
@@ -329,6 +355,9 @@ int main(int argc,char *argv[])
 	tokenize_name(argv[2]);
 	tokenize_val(argv[3]);
 	random_flag=USE_VALUES;
+	if(tok_n_cnt!=tok_v_cnt)
+		cout<<"\n\nNumber of variables and values should be same....!!\n\n";
+	else
 	instrument_file();
     }
    else
