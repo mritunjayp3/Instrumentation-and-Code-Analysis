@@ -1,4 +1,4 @@
-int cntr0=0,cntr1=0,cntr2=0;
+int cntr0=0,cntr1=0,cntr2=0,cntr3=0;
 int i=0,j=9,k=3;
 #include<stdio.h>
 
@@ -12,14 +12,19 @@ int main()
 cntr0++;	// Instrumented code
 		printf("\nBlock A !!!");
 	}
+    if(i==2)
+    {
+cntr1++;	// Instrumented code
+        
+    }
 	if(j==9)
 	{
-cntr1++;	// Instrumented code
+cntr2++;	// Instrumented code
 		printf("\nBlock B !!!");
 	}
 	else if(k==3)
 	{
-cntr2++;	// Instrumented code
+cntr3++;	// Instrumented code
 		printf("\nBlock C !!!");
 	}
  return 0;

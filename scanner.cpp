@@ -7,7 +7,7 @@ using namespace std;
 
 // Declaration of global variables
 
-int mod_flag = 0,random_flag=NOT_SET,values_flag=NEW_VALUE;
+int mod_flag = 0,cntr_val=0,random_flag=NOT_SET,values_flag=NEW_VALUE;
 char mi_stat[4]="on";					/*mod_flag to show if the file is modified
 							 random_flag -> default value is 0
 							mi_stat -> multiple Instrumentation of a single variable -> default "on"
@@ -74,31 +74,19 @@ char * d_rand()
 }
 
 
-inline void func1(char *ident,char *value,char *f_name)              // Function 1 to take input from file and save the instrumented data in temp.cpp
+inline void create_temp_file(char *f_name)              // Function 1 to create a temp file
 {
     FILE *f1,*f2;
-    printf("\n\nModifying file!!!\n\n");
+    printf("\n\nCopying file!!!\n\n");
 					f1= fopen(f_name,"r");
                     f2=fopen("temp.cpp","w");
                     char line[128];
-                    int cnt=0;
                     while(fgets ( line, sizeof line, f1 )!=NULL)
-                    {   ++cnt;
+                    {
                         fputs(line,f2);
-                        if(cnt==yylineno)
-                        {
-                            char ch[50];
-                            strcpy(ch,ident);
-                            strcat(ch,"+=");
-                            strcat(ch,value);
-                            strcat(ch,";        // Instrumented code\n");
-                            fputs(ch,f2);
-                        }
                     }
                     fclose(f2);
                     fclose(f1);
-
-                    ++mod_flag;    // No. of lines instrumented
 }
 
 
@@ -130,11 +118,77 @@ inline void func2(char *ident,char *value)                 // Function 2 to inst
                     ++mod_flag;
 }
 
+inline void func3()                 // Function 2 to instrument temp.cpp file
+{
+    FILE *f1,*f2;
+    printf("\n\nInserting Counter!!!\n\n");
+					f1= fopen("temp.cpp","r");
+                    f2=fopen("temp1.cpp","w");
+                    char line[128];
+                    int cnt=0;
+                    while(fgets ( line, sizeof line, f1 )!=NULL)
+                    {   ++cnt;
+                        fputs(line,f2);
+                       
+			/* if(cnt==(yylineno+mod_flag*2-2))
+                        {
+                            char ch[50];
+                            fprintf(f2,"int cntr%d =0;	//Instrumented code \n",cntr_val);
+                            //strcat(ch,mod_flag);
+                            //strcat(ch,"=0;        // Instrumented code\n");
+                            //fputs(ch,f2);
+                        }
+			else*/
+
+			 if(cnt==(yylineno+mod_flag))
+			{
+				char ch[50];
+                            fprintf(f2,"cntr%d++;	// Instrumented code\n",cntr_val);
+				cntr_val++;
+                            //strcat(ch,mod_flag);
+                            //strcat(ch,"++;        // Instrumented code\n");
+                            //fputs(ch,f2);
+			}
+                    }
+                    fclose(f2);
+                    fclose(f1);
+                    remove("temp.cpp");
+                    rename("temp1.cpp","temp.cpp");
+                    ++mod_flag;
+}
+
+void declare_variables()
+{
+	FILE *f1,*f2;	
+	f1= fopen("temp.cpp","r");
+                    f2=fopen("temp1.cpp","w");
+                    char line[128];
+                    int cnt=0,i=1;
+			fprintf(f2,"int cntr0=0");
+		    while(i<cntr_val)
+			{
+			fprintf(f2,",cntr%d=0",i);
+			++i;
+			}
+			fprintf(f2,";\n");
+                    while(fgets ( line, sizeof line, f1 )!=NULL)
+                        fputs(line,f2);
+	 	    fclose(f2);
+                    fclose(f1);
+                    remove("temp.cpp");
+                    rename("temp1.cpp","temp.cpp");
+                    ++mod_flag;
+}
+
+
 //Function to instrument the file
 void instrument_file()
 {  
 	int n_return,v_return;
 	char ident[38] = DEFAULT;
+    
+    create_temp_file(f_name);   //Create a temp file for given input file
+    
 	yylineno = 1;			//Reset yylineno for each execution
 	yyin = fopen(f_name,"r");
 	 n_return = yylex();
@@ -162,7 +216,7 @@ void instrument_file()
                     {
                     if(strcmp(ident,v_name[k])==0)
                     {
-                           if(mod_flag == 0)
+                       /*    if(mod_flag == 0)
                            {
 				if(random_flag==RANDOMIZE)
                              		func1(v_name[k],d_rand(),f_name);
@@ -172,14 +226,14 @@ void instrument_file()
                           		strcpy(v_name[k],"*");                     // So that variable is instrumented only once
                            }
                            else
-                           {
+                           {*/
 				if(random_flag==RANDOMIZE)
                          	    func2(v_name[k],d_rand());
 				else
 				    func2(v_name[k],v_val[k]);
 				if(strcmp(mi_stat,"off")==0)
                              	 	strcpy(v_name[k],"*");                  //  So that variable is instrumented only once
-                           }
+                          // }
                     }
                     }
 					}
@@ -191,6 +245,15 @@ void instrument_file()
 			}
 
 		}
+        if(n_return==IF||n_return==FOR||n_return==WHILE)      //
+		{
+			n_return=yylex();
+			while(n_return!=S_CLOSING)
+				n_return=yylex();
+			n_return=yylex();
+			if(n_return==B_OPENING)
+                    func3();
+        }
 		n_return = yylex();
 	 }
 
@@ -199,6 +262,7 @@ void instrument_file()
 				printf("\nVariable assignment(s) not found!!!!!\n");
 			else
 			{
+                declare_variables();    //Declare counter variables
 					printf("\nSuccessfully Instrumented given file!!!! \n \nExecuting the code.....\n\n");
                              // Renaming output file to Inst_code.cpp
                              remove("inst_code.cpp");

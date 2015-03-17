@@ -1,4 +1,6 @@
 #include<stdio.h>
+#include<time.h>
+#include<stdlib.h>
 #include<string.h>
 #include "scanner.h"
 
@@ -60,7 +62,7 @@ char * d_rand()
 }
 
 
-inline create_temp_file(char *f_name)              // Function 1 to take input from file and save the instrumented data in temp.cpp
+inline void create_temp_file(char *f_name)              // Function 1 to take input from file and save the instrumented data in temp.cpp
 {
     FILE *f1,*f2;
     printf("\n\nCopying file!!!\n\n");
@@ -76,7 +78,7 @@ inline create_temp_file(char *f_name)              // Function 1 to take input f
 }
 
 
-inline func2()                 // Function 2 to instrument temp.cpp file
+inline void func2()                 // Function 2 to instrument temp.cpp file
 {
     FILE *f1,*f2;
     printf("\n\nModifying file!!!\n\n");
@@ -180,11 +182,7 @@ int main(int argc,char *argv[])
 				n_return=yylex();
 			n_return=yylex();
 			if(n_return==B_OPENING)
-			{
-			
-                             func2();
-
-                        }
+                    func2();
 				
                     }
 		n_return = yylex();

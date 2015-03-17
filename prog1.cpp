@@ -15,7 +15,7 @@ class programming
       }
 };
 
-main()
+int main()
 {
    programming object;
 
@@ -24,7 +24,12 @@ main()
    double gi,hi;
    gi = 20.3;
    object.variable += value;
-
+    
+    if(gi<20)
+    {
+        cout<<"\nGi is less than 20.";
+    }
+    
    hi = 48.2;
    cout<<"\n-> Value: "<<value<<"\n-> gi: "<<gi<<"\n-> hi: "<<hi<<"\n";
    //object.variable;  Will produce an error because variable is private

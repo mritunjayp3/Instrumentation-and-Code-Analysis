@@ -10,6 +10,10 @@ int main()
 	{
 		printf("\nBlock A !!!");
 	}
+    if(i==2)
+    {
+        
+    }
 	if(j==9)
 	{
 		printf("\nBlock B !!!");
