@@ -8,7 +8,7 @@ using namespace std;
 // Declaration of global variables
 
 int mod_flag = 0,cntr_val=0,random_flag=NOT_SET,values_flag=NEW_VALUE;
-char mi_stat[4]="on";					/*mod_flag to show if the file is modified
+char mi_stat[4]="on",ci_stat[4]="off";					/*mod_flag to show if the file is modified
 							 random_flag -> default value is 0
 							mi_stat -> multiple Instrumentation of a single variable -> default "on"
 							values_flag ->To check if the values to be used are new or old
@@ -89,7 +89,7 @@ inline void create_temp_file(char *f_name)              // Function 1 to create 
                     fclose(f1);
 }
 
-
+/*
 inline void func2(char *ident,char *value)                 // Function 2 to instrument temp.cpp file
 {
     FILE *f1,*f2;
@@ -130,7 +130,7 @@ inline void func3()                 // Function 2 to instrument temp.cpp file
                     {   ++cnt;
                         fputs(line,f2);
                        
-			/* if(cnt==(yylineno+mod_flag*2-2))
+			 if(cnt==(yylineno+mod_flag*2-2))
                         {
                             char ch[50];
                             fprintf(f2,"int cntr%d =0;	//Instrumented code \n",cntr_val);
@@ -138,13 +138,11 @@ inline void func3()                 // Function 2 to instrument temp.cpp file
                             //strcat(ch,"=0;        // Instrumented code\n");
                             //fputs(ch,f2);
                         }
-			else*/
+			else
 
 			 if(cnt==(yylineno+mod_flag))
 			{
-				char ch[50];
-                            fprintf(f2,"cntr%d++;	// Instrumented code\n",cntr_val);
-				cntr_val++;
+				
                             //strcat(ch,mod_flag);
                             //strcat(ch,"++;        // Instrumented code\n");
                             //fputs(ch,f2);
@@ -156,7 +154,7 @@ inline void func3()                 // Function 2 to instrument temp.cpp file
                     rename("temp1.cpp","temp.cpp");
                     ++mod_flag;
 }
-
+*/
 void declare_variables()
 {
 	FILE *f1,*f2;	
@@ -183,21 +181,52 @@ void declare_variables()
 
 //Function to instrument the file
 void instrument_file()
-{  
+{
+    
+    create_temp_file(f_name);    //Create a temp file for given input file
+    
+    FILE *f1,*f2;
+    printf("\n\nModifying file!!!\n\n");
+    f1= fopen("temp.cpp","r");
+    f2=fopen("temp1.cpp","w");
+    char line[128];
+    int cnt=0;
+    
+    
 	int n_return,v_return;
 	char ident[38] = DEFAULT;
     
-    create_temp_file(f_name);   //Create a temp file for given input file
+  
     
 	yylineno = 1;			//Reset yylineno for each execution
 	yyin = fopen(f_name,"r");
 	 n_return = yylex();
+    
+    
+    
+    int yyline_old = 0;
+    
+    
 	 while(n_return)
-	 {    
+	 {
+         
+         
+         
+         if(yyline_old!=yylineno)
+         {
+             fgets ( line, sizeof line, f1 );
+             fputs ( line, f2 );
+             ++yyline_old;
+         }
+         
+         
+         
 		if(n_return==IDENTIFIER)
 		   strcpy(ident,yytext);
 		if(n_return==ASSIGN)
 		{
+            
+            
 			if(strcmp(ident,DEFAULT)!=0)
 			{
 			    n_return = yylex();
@@ -228,9 +257,15 @@ void instrument_file()
                            else
                            {*/
 				if(random_flag==RANDOMIZE)
-                         	    func2(v_name[k],d_rand());
-				else
-				    func2(v_name[k],v_val[k]);
+                {
+                    fprintf(f2,"%s+=%s; \t\t\t // Instrumented code \n",v_name[k],d_rand());
+                    ++mod_flag;
+                }
+                else
+                {
+                    fprintf(f2,"%s+=%s; \t\t\t // Instrumented code \n",v_name[k],v_val[k]);
+                    ++mod_flag;
+                }
 				if(strcmp(mi_stat,"off")==0)
                              	 	strcpy(v_name[k],"*");                  //  So that variable is instrumented only once
                           // }
@@ -245,24 +280,42 @@ void instrument_file()
 			}
 
 		}
-        if(n_return==IF||n_return==FOR||n_return==WHILE)      //
-		{
-			n_return=yylex();
-			while(n_return!=S_CLOSING)
-				n_return=yylex();
-			n_return=yylex();
-			if(n_return==B_OPENING)
-                    func3();
-        }
+         if(strcmp(ci_stat,"on")==0)            // If counter instrumentation is on
+         {
+             if(n_return==IF||n_return==FOR||n_return==WHILE)
+             {
+                 n_return=yylex();
+                 while(n_return!=S_CLOSING)
+                     n_return=yylex();
+                n_return=yylex();
+                 if(n_return==B_OPENING)
+                 {
+                     for(int i=0;i<2;i++)
+                     {
+                     fgets ( line, sizeof line, f1 );
+                     fputs ( line, f2 );
+                         ++yyline_old;
+                     }
+                     fprintf(f2,"cntr%d++;	// Instrumented code\n",cntr_val);
+                     cntr_val++;
+                     ++mod_flag;
+                 }
+             }
+         }
 		n_return = yylex();
+         
 	 }
-
+    fclose(f2);
+    fclose(f1);
+    remove("temp.cpp");
+    rename("temp1.cpp","temp.cpp");
 
 			if(mod_flag == 0)
 				printf("\nVariable assignment(s) not found!!!!!\n");
 			else
 			{
-                declare_variables();    //Declare counter variables
+                if(strcmp(ci_stat,"on")==0)
+                    declare_variables();    //Declare counter variables
 					printf("\nSuccessfully Instrumented given file!!!! \n \nExecuting the code.....\n\n");
                              // Renaming output file to Inst_code.cpp
                              remove("inst_code.cpp");
@@ -313,7 +366,7 @@ int main(int argc,char *argv[])
 			inst=1;
 			}
 			break;
-	 case 2:	cout<<"\n\n1. Randomize values\n2. Set Values\n3. Multiple Instrumentation ("<<mi_stat<<")\n0. Main Menu \n--> Enter your choice:";
+	 case 2:	cout<<"\n\n1. Randomize values\n2. Set Values\n3. Multiple Instrumentation ("<<mi_stat<<")\n4. Insert Counter ("<<ci_stat<<")\n0. Main Menu \n--> Enter your choice:";
 			int ch2;
 			cin>>ch2;
 			switch(ch2)
@@ -365,6 +418,16 @@ int main(int argc,char *argv[])
 					else
 						cout<<"\n\nWrong option entered!!!  Exiting!!!!\n";
 				  break;
+                case 4:
+                    cout<<"\nEnter option(0 -> off / 1 -> on):";
+                    cin>>temp_value;
+                    if(temp_value==0)
+                        strcpy(ci_stat,"off");
+                    else if(temp_value==1)
+                        strcpy(ci_stat,"on");
+                    else
+                        cout<<"\n\nWrong option entered!!!  Exiting!!!!\n";
+                    break;
 			    default:  cout<<"\n\nWrong Choice!!!!!\n\n";
 			}	
 			break;
@@ -380,7 +443,7 @@ int main(int argc,char *argv[])
 			tokenize_name(vr_n);
 			values_flag=OLD_VALUE;
 			}
-			mod_flag = 0;
+            mod_flag = 0; cntr_val=0;
 			instrument_file();
 			if(strcmp(mi_stat,"off")==0)
 				random_flag=NOT_SET;
@@ -397,7 +460,7 @@ int main(int argc,char *argv[])
 				cout<<"\nNumber of variables and values should be same!!!\n";
 			else
 			{
-			mod_flag = 0;
+                mod_flag = 0; cntr_val=0;
 			instrument_file();
 			if(strcmp(mi_stat,"off")==0)
 				random_flag=NOT_SET;

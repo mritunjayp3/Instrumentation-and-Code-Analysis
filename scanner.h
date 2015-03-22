@@ -1,3 +1,4 @@
+#define NONE 0
 #define ASSIGN 1
 #define IDENTIFIER 2
 #define INTEGER 3
