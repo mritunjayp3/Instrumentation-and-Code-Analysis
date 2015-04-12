@@ -215,8 +215,8 @@ void instrument_file()
 		fprintf( f2, "cout");
 		int i=0;
 		for(i=0;i<cntr_val-1;i++)
-		fprintf(f2,"<<\"cntr%d\\t\"<<cntr%d<<\"\\n\"",i,i);
-		fprintf(f2,"<<\"cntr%d\\t\"<<cntr%d<<\"\\n\";\n",i,i);
+		fprintf(f2,"<<\"cntr%d\t\"<<cntr%d<<\"\\n\"",i,i);
+		fprintf(f2,"<<\"cntr%d\t\"<<cntr%d<<\"\\n\";\n",i,i);
 		++mod_flag;
 	}
          

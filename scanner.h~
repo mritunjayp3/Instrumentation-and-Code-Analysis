@@ -14,7 +14,6 @@
 #define WHILE 12
 #define DO  13
 #define FOR 14
-#define RET0 15
 #define VR_SZ 30
 #define FN_SZ 30	//File Name lenght
 #define VN_SZ 500	//Variable Name Array size
@@ -25,4 +24,3 @@
 #define USE_VALUES 2
 #define NEW_VALUE 0
 #define OLD_VALUE 1
-

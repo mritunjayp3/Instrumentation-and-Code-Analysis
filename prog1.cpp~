@@ -31,11 +31,6 @@ int main()
     }
     
    hi = 48.2;
-
-	if(hi>50)
-	{
-		//hi block
-	}
    //cout<<"\n-> Value: "<<value<<"\n-> gi: "<<gi<<"\n-> hi: "<<hi<<"\n";
    //object.variable;  Will produce an error because variable is private
     gi= 10.1;

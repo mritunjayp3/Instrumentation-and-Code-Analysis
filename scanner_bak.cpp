@@ -77,7 +77,7 @@ char * d_rand()
 inline void create_temp_file(char *f_name)              // Function 1 to create a temp file
 {
     FILE *f1,*f2;
-    //printf("\n\nCopying file!!!\n\n");
+    printf("\n\nCopying file!!!\n\n");
 					f1= fopen(f_name,"r");
                     f2=fopen("temp.cpp","w");
                     char line[128];
@@ -186,7 +186,7 @@ void instrument_file()
     create_temp_file(f_name);    //Create a temp file for given input file
     
     FILE *f1,*f2;
-   // printf("\n\nModifying file!!!\n\n");
+    printf("\n\nModifying file!!!\n\n");
     f1= fopen("temp.cpp","r");
     f2=fopen("temp1.cpp","w");
     char line[128];
@@ -210,15 +210,7 @@ void instrument_file()
 	 while(n_return)
 	 {
          
-         if(n_return==RET0&&cntr_val>0)
-	{
-		fprintf( f2, "cout");
-		int i=0;
-		for(i=0;i<cntr_val-1;i++)
-		fprintf(f2,"<<\"cntr%d\\t\"<<cntr%d<<\"\\n\"",i,i);
-		fprintf(f2,"<<\"cntr%d\\t\"<<cntr%d<<\"\\n\";\n",i,i);
-		++mod_flag;
-	}
+         
          
          if(yyline_old!=yylineno)
          {
@@ -243,8 +235,8 @@ void instrument_file()
 					char *temp_val = yytext;
 				   if(yylex()==END)
 				   {
-					//printf("\nLine no: %d",yylineno);
-					//printf("\n-> Variable \"%s\" is set to %s\n",ident,temp_val);
+					printf("\nLine no: %d",yylineno);
+					printf("\n-> Variable \"%s\" is set to %s\n",ident,temp_val);
 
 					//printf("%s %s %s",argv[0],argv[1],argv[2]);
 
@@ -324,7 +316,7 @@ void instrument_file()
 			{
                 if(strcmp(ci_stat,"on")==0)
                     declare_variables();    //Declare counter variables
-					//printf("\nSuccessfully Instrumented given file!!!! \n \nExecuting the code.....\n\n");
+					printf("\nSuccessfully Instrumented given file!!!! \n \nExecuting the code.....\n\n");
                              // Renaming output file to Inst_code.cpp
                              remove("inst_code.cpp");
                              rename("temp.cpp","inst_code.cpp");

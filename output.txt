@@ -1,0 +1,12 @@
+cntr0	1
+cntr1	0
+cntr0	1
+cntr1	0
+cntr0	1
+cntr1	0
+cntr0	1
+cntr1	0
+cntr0	0
+cntr1	1
+cntr0	0
+cntr1	1
